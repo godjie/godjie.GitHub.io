@@ -136,13 +136,25 @@
 
     <script type="text/babel">
         function SKUGenerator() {
+            // 从本地存储中读取前缀
             const [type, setType] = React.useState(1);
-            const [prefix, setPrefix] = React.useState('');
+            const [prefix, setPrefix] = React.useState(() => {
+                return localStorage.getItem('skuPrefix') || '';
+            });
             const [startNumber, setStartNumber] = React.useState('001');
             const [fixedCode, setFixedCode] = React.useState('');
             const [skuCode, setSkuCode] = React.useState('');
             const [fixedCodeError, setFixedCodeError] = React.useState('');
             const [copyNotification, setCopyNotification] = React.useState(false);
+
+            // 当前缀变化时，同时更新本地存储
+            React.useEffect(() => {
+                if (prefix) {
+                    localStorage.setItem('skuPrefix', prefix);
+                } else {
+                    localStorage.removeItem('skuPrefix');
+                }
+            }, [prefix]);
 
             const validateFixedCode = (code) => {
                 const regex = /^XP\d{7}$/;
