@@ -136,10 +136,36 @@
 
     <script type="text/babel">
         function SKUGenerator() {
-            // 从本地存储中读取前缀
+            // 安全地获取存储值的函数
+            const getSafeStorageItem = (key) => {
+                try {
+                    // 优先使用 localStorage，如果不可用则使用 sessionStorage
+                    const storage = window.localStorage || window.sessionStorage;
+                    return storage.getItem(key) || '';
+                } catch (e) {
+                    console.warn('存储访问失败', e);
+                    return '';
+                }
+            };
+
+            // 安全地设置存储值的函数
+            const setSafeStorageItem = (key, value) => {
+                try {
+                    // 优先使用 localStorage，如果不可用则使用 sessionStorage
+                    const storage = window.localStorage || window.sessionStorage;
+                    if (value) {
+                        storage.setItem(key, value);
+                    } else {
+                        storage.removeItem(key);
+                    }
+                } catch (e) {
+                    console.warn('存储设置失败', e);
+                }
+            };
+
             const [type, setType] = React.useState(1);
             const [prefix, setPrefix] = React.useState(() => {
-                return localStorage.getItem('skuPrefix') || '';
+                return getSafeStorageItem('skuPrefix');
             });
             const [startNumber, setStartNumber] = React.useState('001');
             const [fixedCode, setFixedCode] = React.useState('');
@@ -147,13 +173,9 @@
             const [fixedCodeError, setFixedCodeError] = React.useState('');
             const [copyNotification, setCopyNotification] = React.useState(false);
 
-            // 当前缀变化时，同时更新本地存储
+            // 当前缀变化时，同时更新存储
             React.useEffect(() => {
-                if (prefix) {
-                    localStorage.setItem('skuPrefix', prefix);
-                } else {
-                    localStorage.removeItem('skuPrefix');
-                }
+                setSafeStorageItem('skuPrefix', prefix);
             }, [prefix]);
 
             const validateFixedCode = (code) => {
@@ -273,7 +295,7 @@
                     </div>
 
                     <button 
-                        className="generate-btn" 
+                        className="generate-btn"   
                         onClick={generateSKU}
                         disabled={!canGenerateSKU()}
                     >
