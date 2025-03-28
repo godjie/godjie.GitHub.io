@@ -129,6 +129,23 @@
             font-size: 14px;
             transition: opacity 0.3s;
         }
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            background-color: #f8f9fa;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tab-btn.active {
+            background-color: #4096ff;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -136,48 +153,37 @@
 
     <script type="text/babel">
         function SKUGenerator() {
-            // 安全地获取存储值的函数
-            const getSafeStorageItem = (key) => {
-                try {
-                    // 优先使用 localStorage，如果不可用则使用 sessionStorage
-                    const storage = window.localStorage || window.sessionStorage;
-                    return storage.getItem(key) || '';
-                } catch (e) {
-                    console.warn('存储访问失败', e);
-                    return '';
-                }
-            };
-
-            // 安全地设置存储值的函数
-            const setSafeStorageItem = (key, value) => {
-                try {
-                    // 优先使用 localStorage，如果不可用则使用 sessionStorage
-                    const storage = window.localStorage || window.sessionStorage;
-                    if (value) {
-                        storage.setItem(key, value);
-                    } else {
-                        storage.removeItem(key);
-                    }
-                } catch (e) {
-                    console.warn('存储设置失败', e);
-                }
-            };
-
+            const [activeTab, setActiveTab] = React.useState('standard');
+            
+            // 标准SKU状态
             const [type, setType] = React.useState(1);
             const [prefix, setPrefix] = React.useState(() => {
-                return getSafeStorageItem('skuPrefix');
+                return localStorage.getItem('skuPrefix') || '';
             });
             const [startNumber, setStartNumber] = React.useState('001');
+            const [launchNumber, setLaunchNumber] = React.useState(1);
             const [fixedCode, setFixedCode] = React.useState('');
             const [skuCode, setSkuCode] = React.useState('');
             const [fixedCodeError, setFixedCodeError] = React.useState('');
             const [copyNotification, setCopyNotification] = React.useState(false);
 
-            // 当前缀变化时，同时更新存储
+            // 商家SKU状态
+            const [merchantQuantity, setMerchantQuantity] = React.useState(1);
+            const [merchantColor, setMerchantColor] = React.useState('');
+            const [merchantSpecification, setMerchantSpecification] = React.useState('');
+            const [merchantSkuCode, setMerchantSkuCode] = React.useState('');
+            const [merchantCopyNotification, setMerchantCopyNotification] = React.useState(false);
+
+            // 标准SKU本地存储前缀逻辑
             React.useEffect(() => {
-                setSafeStorageItem('skuPrefix', prefix);
+                if (prefix) {
+                    localStorage.setItem('skuPrefix', prefix);
+                } else {
+                    localStorage.removeItem('skuPrefix');
+                }
             }, [prefix]);
 
+            // 标准SKU的验证和生成逻辑
             const validateFixedCode = (code) => {
                 const regex = /^XP\d{7}$/;
                 if (!regex.test(code)) {
@@ -202,10 +208,10 @@
 
                 let generatedCode;
                 if (type === 1) {
-                    generatedCode = `${prefix}-${dateCode}001`;
+                    generatedCode = `${prefix}-${dateCode}${startNumber}${launchNumber > 1 ? `-V${launchNumber}` : ''}`;
                 } else {
                     if (validateFixedCode(fixedCode)) {
-                        generatedCode = `${prefix}-${fixedCode}`;
+                        generatedCode = `${prefix}-${fixedCode}${launchNumber > 1 ? `-V${launchNumber}` : ''}`;
                     } else {
                         return;
                     }
@@ -215,12 +221,50 @@
                 copyToClipboard(generatedCode);
             };
 
+            // 商家SKU的生成逻辑
+            const generateMerchantSKU = () => {
+                // 验证颜色和规格
+                const colorRegex = /^[a-z]+$/;
+                const specRegex = /^[a-z0-9]+x[a-z0-9]+$/;
+
+                if (!colorRegex.test(merchantColor)) {
+                    alert('颜色只能输入小写英文字母');
+                    return;
+                }
+
+                if (!specRegex.test(merchantSpecification)) {
+                    alert('规格格式错误，请使用数字或小写字母，例如：80x80cm');
+                    return;
+                }
+
+                const today = new Date();
+                const year = today.getFullYear().toString().slice(-2);
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const dateCode = year + month + day;
+
+                // 数量后缀处理
+                const quantitySuffix = merchantQuantity === 1 ? 'pc' : 'pcs';
+
+                const merchantSkuGenerated = `${prefix}-${dateCode}001-V${merchantQuantity}-${merchantQuantity}${quantitySuffix}-${merchantColor}-${merchantSpecification}`;
+
+                setMerchantSkuCode(merchantSkuGenerated);
+                copyToClipboard(merchantSkuGenerated);
+            };
+
             const copyToClipboard = (text) => {
                 navigator.clipboard.writeText(text).then(() => {
-                    setCopyNotification(true);
-                    setTimeout(() => {
-                        setCopyNotification(false);
-                    }, 2000);
+                    if (activeTab === 'standard') {
+                        setCopyNotification(true);
+                        setTimeout(() => {
+                            setCopyNotification(false);
+                        }, 2000);
+                    } else {
+                        setMerchantCopyNotification(true);
+                        setTimeout(() => {
+                            setMerchantCopyNotification(false);
+                        }, 2000);
+                    }
                 }).catch(err => {
                     console.error('复制失败', err);
                 });
@@ -231,87 +275,199 @@
                 return type === 1 ? isPrefixValid : isPrefixValid && !fixedCodeError;
             };
 
+            const canGenerateMerchantSKU = () => {
+                const isPrefixValid = prefix.length === 3;
+                const isColorValid = /^[a-z]+$/.test(merchantColor);
+                const isSpecValid = /^[a-z0-9]+x[a-z0-9]+$/.test(merchantSpecification);
+                return isPrefixValid && isColorValid && isSpecValid;
+            };
+
             return (
                 <div className="container">
                     <div className="header">
                         <h2>SKU编码生成系统</h2>
                     </div>
 
-                    <div className="type-selector">
-                        <label className="type-radio">
-                            <input 
-                                type="radio" 
-                                checked={type === 1}
-                                onChange={() => setType(1)}
-                            />
-                            类型1：前缀+日期+序号
-                        </label>
-                        <label className="type-radio">
-                            <input 
-                                type="radio" 
-                                checked={type === 2}
-                                onChange={() => setType(2)}
-                            />
-                            类型2：前缀+固定字符
-                        </label>
-                    </div>
-
-                    <div className="form-group">
-                        <label>前缀（3位大写字母）</label>
-                        <input 
-                            className="form-input"
-                            type="text" 
-                            maxLength="3"
-                            value={prefix}
-                            onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-                            placeholder="请输入3位大写字母"
-                        />
-                    </div>
-
-                    <div className={`form-group ${type === 1 ? 'hidden' : ''}`}>
-                        <label>固定字符</label>
-                        <input 
-                            className={`form-input ${fixedCodeError ? 'error' : ''}`}
-                            type="text" 
-                            value={fixedCode}
-                            onChange={(e) => handleFixedCodeChange(e.target.value)}
-                            placeholder="以XP开头，后跟7位数字（仅类型2使用）"
-                        />
-                        {fixedCodeError && <div className="error-text">{fixedCodeError}</div>}
-                    </div>
-
-                    <div className={`form-group ${type === 2 ? 'hidden' : ''}`}>
-                        <label>起始序号</label>
-                        <select 
-                            className="form-input"
-                            value={startNumber}
-                            onChange={(e) => setStartNumber(e.target.value)}
+                    <div className="tab-buttons">
+                        <div 
+                            className={`tab-btn ${activeTab === 'standard' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('standard')}
                         >
-                            {[...Array(10)].map((_, i) => {
-                                const num = String(i + 1).padStart(3, '0');
-                                return <option key={num} value={num}>{num}</option>;
-                            })}
-                        </select>
+                            标准SKU
+                        </div>
+                        <div 
+                            className={`tab-btn ${activeTab === 'merchant' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('merchant')}
+                        >
+                            商家SKU
+                        </div>
                     </div>
 
-                    <button 
-                        className="generate-btn"   
-                        onClick={generateSKU}
-                        disabled={!canGenerateSKU()}
-                    >
-                        生成供货号
-                    </button>
+                    {activeTab === 'standard' && (
+                        <>
+                            <div className="type-selector">
+                                <label className="type-radio">
+                                    <input 
+                                        type="radio" 
+                                        checked={type === 1}
+                                        onChange={() => setType(1)}
+                                    />
+                                    类型1：前缀+日期+序号
+                                </label>
+                                <label className="type-radio">
+                                    <input 
+                                        type="radio" 
+                                        checked={type === 2}
+                                        onChange={() => setType(2)}
+                                    />
+                                    类型2：前缀+固定字符
+                                </label>
+                            </div>
 
-                    {skuCode && (
-                        <div className="result-section">
-                            {copyNotification && (
-                                <div className="copy-notification">
-                                    已复制到剪贴板
+                            <div className="form-group">
+                                <label>前缀（3位大写字母）</label>
+                                <input 
+                                    className="form-input"
+                                    type="text" 
+                                    maxLength="3"
+                                    value={prefix}
+                                    onChange={(e) => setPrefix(e.target.value.toUpperCase())}
+                                    placeholder="请输入3位大写字母"
+                                />
+                            </div>
+
+                            <div className={`form-group ${type === 1 ? 'hidden' : ''}`}>
+                                <label>固定字符</label>
+                                <input 
+                                    className={`form-input ${fixedCodeError ? 'error' : ''}`}
+                                    type="text" 
+                                    value={fixedCode}
+                                    onChange={(e) => handleFixedCodeChange(e.target.value)}
+                                    placeholder="以XP开头，后跟7位数字（仅类型2使用）"
+                                />
+                                {fixedCodeError && <div className="error-text">{fixedCodeError}</div>}
+                            </div>
+
+                            <div className={`form-group ${type === 2 ? 'hidden' : ''}`}>
+                                <label>起始序号</label>
+                                <select 
+                                    className="form-input"
+                                    value={startNumber}
+                                    onChange={(e) => setStartNumber(e.target.value)}
+                                >
+                                    {[...Array(10)].map((_, i) => {
+                                        const num = String(i + 1).padStart(3, '0');
+                                        return <option key={num} value={num}>{num}</option>;
+                                    })}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>上架次数</label>
+                                <select 
+                                    className="form-input"
+                                    value={launchNumber}
+                                    onChange={(e) => setLaunchNumber(Number(e.target.value))}
+                                >
+                                    {[...Array(10)].map((_, i) => {
+                                        const num = i + 1;
+                                        return <option key={num} value={num}>{num}</option>;
+                                    })}
+                                </select>
+                            </div>
+
+                            <button 
+                                className="generate-btn" 
+                                onClick={generateSKU}
+                                disabled={!canGenerateSKU()}
+                            >
+                                生成供货号
+                            </button>
+
+                            {skuCode && (
+                                <div className="result-section">
+                                    {copyNotification && (
+                                        <div className="copy-notification">
+                                            已复制到剪贴板
+                                        </div>
+                                    )}
+                                    <div className="result-label">生成的供货号</div>
+                                    <div className="result-code">{skuCode}</div>
                                 </div>
                             )}
-                            <div className="result-label">生成的供货号</div>
-                            <div className="result-code">{skuCode}</div>
-                        </div>
+                        </>
+                    )}
+
+                    {activeTab === 'merchant' && (
+                        <>
+                            <div className="form-group">
+                                <label>前缀（3位大写字母）</label>
+                                <input 
+                                    className="form-input"
+                                    type="text" 
+                                    maxLength="3"
+                                    value={prefix}
+                                    onChange={(e) => setPrefix(e.target.value.toUpperCase())}
+                                    placeholder="请输入3位大写字母"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>数量</label>
+                                <select 
+                                    className="form-input"
+                                    value={merchantQuantity}
+                                    onChange={(e) => setMerchantQuantity(Number(e.target.value))}
+                                >
+                                    {[...Array(10)].map((_, i) => {
+                                        const num = i + 1;
+                                        return <option key={num} value={num}>{num}</option>;
+                                    })}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>颜色（小写英文字母）</label>
+                                <input 
+                                    className="form-input"
+                                    type="text" 
+                                    value={merchantColor}
+                                    onChange={(e) => setMerchantColor(e.target.value.toLowerCase())}
+                                    placeholder="例如：baise"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>尺寸/规格（数字x数字）</label>
+                                <input 
+                                    className="form-input"
+                                    type="text" 
+                                    value={merchantSpecification}
+                                    onChange={(e) => setMerchantSpecification(e.target.value.toLowerCase())}
+                                    placeholder="例如：80x80cm"
+                                />
+                            </div>
+
+                            <button 
+                                className="generate-btn" 
+                                onClick={generateMerchantSKU}
+                                disabled={!canGenerateMerchantSKU()}
+                            >
+                                生成商家SKU
+                            </button>
+
+                            {merchantSkuCode && (
+                                <div className="result-section">
+                                    {merchantCopyNotification && (
+                                        <div className="copy-notification">
+                                            已复制到剪贴板
+                                        </div>
+                                    )}
+                                    <div className="result-label">生成的商家SKU</div>
+                                    <div className="result-code">{merchantSkuCode}</div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             );
