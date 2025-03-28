@@ -1,479 +1,430 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>SKU编码生成器</title>
-    <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            padding: 30px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #2c3e50;
-        }
-        .type-selector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 20px;
-        }
-        .type-radio {
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        .type-radio input {
-            margin-right: 8px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #495057;
-            font-weight: 500;
-        }
-        .form-input {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.2s;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #4096ff;
-            box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.2);
-        }
-        .form-input.error {
-            border-color: #ff4d4f;
-        }
-        .error-text {
-            color: #ff4d4f;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-        .generate-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #4096ff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .generate-btn:hover {
-            background-color: #1677ff;
-        }
-        .generate-btn:disabled {
-            background-color: #a8c1e6;
-            cursor: not-allowed;
-        }
-        .result-section {
-            margin-top: 25px;
-            background-color: #f0f5ff;
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-            position: relative;
-        }
-        .result-label {
-            color: #1677ff;
-            margin-bottom: 10px;
-        }
-        .result-code {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .hidden {
-            display: none;
-        }
-        .copy-notification {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #52c41a;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: opacity 0.3s;
-        }
-        .tab-buttons {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            background-color: #f8f9fa;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .tab-btn.active {
-            background-color: #4096ff;
-            color: white;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>SKU编码生成器</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f7fa;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 700px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 30px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2c3e50;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: 500;
+    }
+    .form-group label span.required {
+      color: red;
+      margin-left: 4px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #4096ff;
+      box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.2);
+    }
+    .form-input.error {
+      border-color: #ff4d4f;
+    }
+    .error-text {
+      color: #ff4d4f;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .radio-group label {
+      cursor: pointer;
+    }
+    .result-section {
+      padding: 10px 15px;
+      background-color: #f0f5ff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      word-break: break-all;
+    }
+    .result-code {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .copy-btn {
+      background-color: #4096ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .copy-btn:hover {
+      background-color: #1677ff;
+    }
+    /* 两栏布局 */
+    .row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .col {
+      flex: 1;
+      min-width: 150px;
+    }
+    hr {
+      margin: 30px 0;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+    .notification {
+      color: #52c41a;
+      font-size: 14px;
+      margin-top: 5px;
+      text-align: right;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        function SKUGenerator() {
-            const [activeTab, setActiveTab] = React.useState('standard');
-            
-            // 标准SKU状态
-            const [type, setType] = React.useState(1);
-            const [prefix, setPrefix] = React.useState(() => {
-                return localStorage.getItem('skuPrefix') || '';
-            });
-            const [startNumber, setStartNumber] = React.useState('001');
-            const [launchNumber, setLaunchNumber] = React.useState(1);
-            const [fixedCode, setFixedCode] = React.useState('');
-            const [skuCode, setSkuCode] = React.useState('');
-            const [fixedCodeError, setFixedCodeError] = React.useState('');
-            const [copyNotification, setCopyNotification] = React.useState(false);
-
-            // 商家SKU状态
-            const [merchantQuantity, setMerchantQuantity] = React.useState(1);
-            const [merchantColor, setMerchantColor] = React.useState('');
-            const [merchantSpecification, setMerchantSpecification] = React.useState('');
-            const [merchantSkuCode, setMerchantSkuCode] = React.useState('');
-            const [merchantCopyNotification, setMerchantCopyNotification] = React.useState(false);
-
-            // 标准SKU本地存储前缀逻辑
-            React.useEffect(() => {
-                if (prefix) {
-                    localStorage.setItem('skuPrefix', prefix);
-                } else {
-                    localStorage.removeItem('skuPrefix');
-                }
-            }, [prefix]);
-
-            // 标准SKU的验证和生成逻辑
-            const validateFixedCode = (code) => {
-                const regex = /^XP\d{7}$/;
-                if (!regex.test(code)) {
-                    setFixedCodeError('固定字符必须以XP开头，后跟7位数字');
-                    return false;
-                }
-                setFixedCodeError('');
-                return true;
-            };
-
-            const handleFixedCodeChange = (value) => {
-                setFixedCode(value.toUpperCase());
-                validateFixedCode(value);
-            };
-
-            const generateSKU = () => {
-                const today = new Date();
-                const year = today.getFullYear().toString().slice(-2);
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                const dateCode = year + month + day;
-
-                let generatedCode;
-                if (type === 1) {
-                    generatedCode = `${prefix}-${dateCode}${startNumber}${launchNumber > 1 ? `-V${launchNumber}` : ''}`;
-                } else {
-                    if (validateFixedCode(fixedCode)) {
-                        generatedCode = `${prefix}-${fixedCode}${launchNumber > 1 ? `-V${launchNumber}` : ''}`;
-                    } else {
-                        return;
-                    }
-                }
-
-                setSkuCode(generatedCode);
-                copyToClipboard(generatedCode);
-            };
-
-            // 商家SKU的生成逻辑
-            const generateMerchantSKU = () => {
-                // 验证颜色和规格
-                const colorRegex = /^[a-z]+$/;
-                const specRegex = /^[a-z0-9]+x[a-z0-9]+$/;
-
-                if (!colorRegex.test(merchantColor)) {
-                    alert('颜色只能输入小写英文字母');
-                    return;
-                }
-
-                if (!specRegex.test(merchantSpecification)) {
-                    alert('规格格式错误，请使用数字或小写字母，例如：80x80cm');
-                    return;
-                }
-
-                const today = new Date();
-                const year = today.getFullYear().toString().slice(-2);
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                const dateCode = year + month + day;
-
-                // 数量后缀处理
-                const quantitySuffix = merchantQuantity === 1 ? 'pc' : 'pcs';
-
-                const merchantSkuGenerated = `${prefix}-${dateCode}001-V${merchantQuantity}-${merchantQuantity}${quantitySuffix}-${merchantColor}-${merchantSpecification}`;
-
-                setMerchantSkuCode(merchantSkuGenerated);
-                copyToClipboard(merchantSkuGenerated);
-            };
-
-            const copyToClipboard = (text) => {
-                navigator.clipboard.writeText(text).then(() => {
-                    if (activeTab === 'standard') {
-                        setCopyNotification(true);
-                        setTimeout(() => {
-                            setCopyNotification(false);
-                        }, 2000);
-                    } else {
-                        setMerchantCopyNotification(true);
-                        setTimeout(() => {
-                            setMerchantCopyNotification(false);
-                        }, 2000);
-                    }
-                }).catch(err => {
-                    console.error('复制失败', err);
-                });
-            };
-
-            const canGenerateSKU = () => {
-                const isPrefixValid = prefix.length === 3;
-                return type === 1 ? isPrefixValid : isPrefixValid && !fixedCodeError;
-            };
-
-            const canGenerateMerchantSKU = () => {
-                const isPrefixValid = prefix.length === 3;
-                const isColorValid = /^[a-z]+$/.test(merchantColor);
-                const isSpecValid = /^[a-z0-9]+x[a-z0-9]+$/.test(merchantSpecification);
-                return isPrefixValid && isColorValid && isSpecValid;
-            };
-
-            return (
-                <div className="container">
-                    <div className="header">
-                        <h2>SKU编码生成系统</h2>
-                    </div>
-
-                    <div className="tab-buttons">
-                        <div 
-                            className={`tab-btn ${activeTab === 'standard' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('standard')}
-                        >
-                            标准SKU
-                        </div>
-                        <div 
-                            className={`tab-btn ${activeTab === 'merchant' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('merchant')}
-                        >
-                            商家SKU
-                        </div>
-                    </div>
-
-                    {activeTab === 'standard' && (
-                        <>
-                            <div className="type-selector">
-                                <label className="type-radio">
-                                    <input 
-                                        type="radio" 
-                                        checked={type === 1}
-                                        onChange={() => setType(1)}
-                                    />
-                                    类型1：前缀+日期+序号
-                                </label>
-                                <label className="type-radio">
-                                    <input 
-                                        type="radio" 
-                                        checked={type === 2}
-                                        onChange={() => setType(2)}
-                                    />
-                                    类型2：前缀+固定字符
-                                </label>
-                            </div>
-
-                            <div className="form-group">
-                                <label>前缀（3位大写字母）</label>
-                                <input 
-                                    className="form-input"
-                                    type="text" 
-                                    maxLength="3"
-                                    value={prefix}
-                                    onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-                                    placeholder="请输入3位大写字母"
-                                />
-                            </div>
-
-                            <div className={`form-group ${type === 1 ? 'hidden' : ''}`}>
-                                <label>固定字符</label>
-                                <input 
-                                    className={`form-input ${fixedCodeError ? 'error' : ''}`}
-                                    type="text" 
-                                    value={fixedCode}
-                                    onChange={(e) => handleFixedCodeChange(e.target.value)}
-                                    placeholder="以XP开头，后跟7位数字（仅类型2使用）"
-                                />
-                                {fixedCodeError && <div className="error-text">{fixedCodeError}</div>}
-                            </div>
-
-                            <div className={`form-group ${type === 2 ? 'hidden' : ''}`}>
-                                <label>起始序号</label>
-                                <select 
-                                    className="form-input"
-                                    value={startNumber}
-                                    onChange={(e) => setStartNumber(e.target.value)}
-                                >
-                                    {[...Array(10)].map((_, i) => {
-                                        const num = String(i + 1).padStart(3, '0');
-                                        return <option key={num} value={num}>{num}</option>;
-                                    })}
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>上架次数</label>
-                                <select 
-                                    className="form-input"
-                                    value={launchNumber}
-                                    onChange={(e) => setLaunchNumber(Number(e.target.value))}
-                                >
-                                    {[...Array(10)].map((_, i) => {
-                                        const num = i + 1;
-                                        return <option key={num} value={num}>{num}</option>;
-                                    })}
-                                </select>
-                            </div>
-
-                            <button 
-                                className="generate-btn" 
-                                onClick={generateSKU}
-                                disabled={!canGenerateSKU()}
-                            >
-                                生成供货号
-                            </button>
-
-                            {skuCode && (
-                                <div className="result-section">
-                                    {copyNotification && (
-                                        <div className="copy-notification">
-                                            已复制到剪贴板
-                                        </div>
-                                    )}
-                                    <div className="result-label">生成的供货号</div>
-                                    <div className="result-code">{skuCode}</div>
-                                </div>
-                            )}
-                        </>
-                    )}
-
-                    {activeTab === 'merchant' && (
-                        <>
-                            <div className="form-group">
-                                <label>前缀（3位大写字母）</label>
-                                <input 
-                                    className="form-input"
-                                    type="text" 
-                                    maxLength="3"
-                                    value={prefix}
-                                    onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-                                    placeholder="请输入3位大写字母"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>数量</label>
-                                <select 
-                                    className="form-input"
-                                    value={merchantQuantity}
-                                    onChange={(e) => setMerchantQuantity(Number(e.target.value))}
-                                >
-                                    {[...Array(10)].map((_, i) => {
-                                        const num = i + 1;
-                                        return <option key={num} value={num}>{num}</option>;
-                                    })}
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>颜色（小写英文字母）</label>
-                                <input 
-                                    className="form-input"
-                                    type="text" 
-                                    value={merchantColor}
-                                    onChange={(e) => setMerchantColor(e.target.value.toLowerCase())}
-                                    placeholder="例如：baise"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>尺寸/规格（数字x数字）</label>
-                                <input 
-                                    className="form-input"
-                                    type="text" 
-                                    value={merchantSpecification}
-                                    onChange={(e) => setMerchantSpecification(e.target.value.toLowerCase())}
-                                    placeholder="例如：80x80cm"
-                                />
-                            </div>
-
-                            <button 
-                                className="generate-btn" 
-                                onClick={generateMerchantSKU}
-                                disabled={!canGenerateMerchantSKU()}
-                            >
-                                生成商家SKU
-                            </button>
-
-                            {merchantSkuCode && (
-                                <div className="result-section">
-                                    {merchantCopyNotification && (
-                                        <div className="copy-notification">
-                                            已复制到剪贴板
-                                        </div>
-                                    )}
-                                    <div className="result-label">生成的商家SKU</div>
-                                    <div className="result-code">{merchantSkuCode}</div>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            );
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    // 通用方法：生成日期编码 yyMMdd
+    const getDateCode = () => {
+      const today = new Date();
+      const year = today.getFullYear().toString().slice(-2);
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return year + month + day;
+    };
+    
+    // 复制文本到剪贴板，并在对应区域显示提示（提示1秒后自动消失）
+    const copyToClipboard = (text, setNotification) => {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        setNotification(true);
+        setTimeout(() => {
+          setNotification(false);
+        }, 1000);
+      }).catch(err => {
+        console.error('复制失败', err);
+      });
+    };
+    
+    function App() {
+      // 供货号相关状态
+      const [skuType, setSkuType] = useState(1);  // 1: 前缀+日期+序号, 2: 前缀+固定字符
+      const [prefix, setPrefix] = useState(() => localStorage.getItem('skuPrefix') || '');
+      const [startNumber, setStartNumber] = useState("001");
+      const [launchNumber, setLaunchNumber] = useState(1);
+      const [fixedCode, setFixedCode] = useState('');
+      const [fixedCodeError, setFixedCodeError] = useState('');
+    
+      // 商家SKU相关状态
+      const [quantity, setQuantity] = useState("1");  // 下拉选择，默认1
+      const [color, setColor] = useState('');
+      const [spec, setSpec] = useState('');
+      const [colorError, setColorError] = useState('');
+      const [specError, setSpecError] = useState('');
+      const [merchantSKUState, setMerchantSKUState] = useState('');
+      const [merchantSKUError, setMerchantSKUError] = useState('');
+    
+      // 复制提示状态
+      const [copySupplyNotification, setCopySupplyNotification] = useState(false);
+      const [copyMerchantNotification, setCopyMerchantNotification] = useState(false);
+    
+      // 同步前缀到本地存储
+      useEffect(() => {
+        if (prefix) {
+          localStorage.setItem('skuPrefix', prefix);
+        } else {
+          localStorage.removeItem('skuPrefix');
         }
-
-        ReactDOM.render(<SKUGenerator />, document.getElementById('root'));
-    </script>
+      }, [prefix]);
+    
+      // 校验固定字符：必须以XP开头，后跟7位数字
+      const validateFixedCode = (value) => {
+        const regex = /^XP\d{7}$/;
+        if (!regex.test(value)) {
+          setFixedCodeError('固定字符必须以XP开头，后跟7位数字');
+          return false;
+        }
+        setFixedCodeError('');
+        return true;
+      };
+    
+      // 固定字符变化
+      const handleFixedCodeChange = (value) => {
+        setFixedCode(value.toUpperCase());
+        validateFixedCode(value);
+      };
+    
+      // 校验颜色：只能小写英文字母（如果输入内容不为空）
+      const validateColor = (value) => {
+        const regex = /^[a-z]+$/;
+        if (value && !regex.test(value)) {
+          setColorError('颜色只能输入小写英文字母');
+          return false;
+        }
+        setColorError('');
+        return true;
+      };
+    
+      // 校验尺寸或其他规格：只能输入数字和小写英文字母（如果输入内容不为空）
+      const validateSpec = (value) => {
+        const regex = /^[0-9a-z]+$/;
+        if (value && !regex.test(value)) {
+          setSpecError('尺寸或规格只能输入数字和小写字母');
+          return false;
+        }
+        setSpecError('');
+        return true;
+      };
+    
+      // 供货号动态生成，根据相关控件输入自动更新
+      const supplySKU = (() => {
+        if (prefix.length !== 3) return '';
+        const dateCode = getDateCode();
+        const version = launchNumber > 1 ? `-V${launchNumber}` : '';
+        if (skuType === 1) {
+          return `${prefix}-${dateCode}${startNumber}${version}`;
+        } else {
+          if (!fixedCode || fixedCodeError) return '';
+          return `${prefix}-${fixedCode}${version}`;
+        }
+      })();
+    
+      // 商家SKU生成函数：只要颜色或规格任一有内容（且校验通过），就生成SKU
+      const computeMerchantSKU = () => {
+        if (!supplySKU) return '';
+        // 只要颜色或规格中有任一不为空即可
+        if (!color && !spec) return '';
+        if ((color && colorError) || (spec && specError)) return '';
+        const intQuantity = parseInt(quantity, 10);
+        const quantitySuffix = intQuantity > 1 ? `${intQuantity}pcs` : "";
+        let sku = supplySKU;
+        if (quantitySuffix) {
+          sku += `-${quantitySuffix}`;
+        }
+        if (color) {
+          sku += `-${color}`;
+        }
+        if (spec) {
+          sku += `-${spec}`;
+        }
+        return sku;
+      };
+    
+      // 每当供货号、数量、颜色、或规格发生变化时，重新计算商家SKU及长度错误提示
+      useEffect(() => {
+        const computedSKU = computeMerchantSKU();
+        setMerchantSKUState(computedSKU);
+        if (computedSKU && computedSKU.length > 35) {
+          setMerchantSKUError("商家SKU字符长度不能超过35个，请适当精简");
+        } else {
+          setMerchantSKUError("");
+        }
+      }, [supplySKU, quantity, color, spec, colorError, specError]);
+    
+      return (
+        <div className="container">
+          <div className="header">
+            <h2>SKU编码生成系统</h2>
+          </div>
+    
+          {/* 供货号设置区域 */}
+          <div className="form-group">
+            <div className="radio-group">
+              <label>
+                <input 
+                  type="radio" 
+                  checked={skuType === 1}
+                  onChange={() => setSkuType(1)}
+                /> 前缀+日期+序号
+              </label>
+              <label>
+                <input 
+                  type="radio" 
+                  checked={skuType === 2}
+                  onChange={() => setSkuType(2)}
+                /> 前缀+固定字符
+              </label>
+            </div>
+          </div>
+    
+          <div className="row">
+            <div className="col form-group">
+              <label><span className="required">*</span>前缀（3位大写字母）</label>
+              <input 
+                className="form-input"
+                type="text" 
+                maxLength="3"
+                value={prefix}
+                onChange={(e) => setPrefix(e.target.value.toUpperCase())}
+                placeholder="请输入3位大写字母"
+              />
+            </div>
+            {skuType === 2 ? (
+              <div className="col form-group">
+                <label><span className="required">*</span>固定字符</label>
+                <input 
+                  className={`form-input ${fixedCodeError ? 'error' : ''}`}
+                  type="text" 
+                  value={fixedCode}
+                  onChange={(e) => handleFixedCodeChange(e.target.value)}
+                  placeholder="以XP开头，后跟7位数字"
+                />
+                {fixedCodeError && <div className="error-text">{fixedCodeError}</div>}
+              </div>
+            ) : (
+              <div className="col form-group">
+                <label><span className="required">*</span>起始序号（今日上的第几个品）</label>
+                <select 
+                  className="form-input"
+                  value={startNumber}
+                  onChange={(e) => setStartNumber(e.target.value)}
+                >
+                  {Array.from({ length: 100 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    return <option key={num} value={num}>{num}</option>;
+                  })}
+                </select>
+              </div>
+            )}
+          </div>
+    
+          <div className="row">
+            <div className="col form-group">
+              <label><span className="required">*</span>上架次数（此商品第几次上架）</label>
+              <select 
+                className="form-input"
+                value={launchNumber}
+                onChange={(e) => setLaunchNumber(Number(e.target.value))}
+              >
+                {Array.from({ length: 50 }, (_, i) => {
+                  const num = i + 1;
+                  return <option key={num} value={num}>{num}</option>;
+                })}
+              </select>
+            </div>
+          </div>
+    
+          {/* 供货号结果 */}
+          <div className="form-group">
+            <label>生成的供货号</label>
+            <div className="result-section">
+              <div className="result-code">{supplySKU}</div>
+              <button className="copy-btn" onClick={() => copyToClipboard(supplySKU, setCopySupplyNotification)}>复制</button>
+            </div>
+            {copySupplyNotification && <div className="notification">复制成功</div>}
+          </div>
+    
+          <hr />
+    
+          {/* 商家SKU设置区域 */}
+          <div className="row">
+            <div className="col form-group">
+              <label><span className="required">*</span>数量</label>
+              <select 
+                className="form-input"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+              >
+                {Array.from({ length: 100 }, (_, i) => {
+                  const num = i + 1;
+                  return <option key={num} value={num}>{num}</option>;
+                })}
+              </select>
+            </div>
+            <div className="col form-group">
+              <label>颜色（小写字母拼音）</label>
+              <input 
+                className={`form-input ${colorError ? 'error' : ''}`}
+                type="text" 
+                value={color}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  validateColor(e.target.value);
+                }}
+                placeholder="白色写成baise"
+              />
+              {colorError && <div className="error-text">{colorError}</div>}
+            </div>
+            <div className="col form-group">
+              <label>其他说明</label>
+              <input 
+                className={`form-input ${specError ? 'error' : ''}`}
+                type="text" 
+                value={spec}
+                onChange={(e) => {
+                  setSpec(e.target.value);
+                  validateSpec(e.target.value);
+                }}
+                placeholder="数字或小写字母"
+              />
+              {specError && <div className="error-text">{specError}</div>}
+            </div>
+          </div>
+    
+          {/* 商家SKU结果 */}
+          <div className="form-group">
+            <label>生成的商家SKU</label>
+            <div className="result-section">
+              <div className="result-code">{merchantSKUState}</div>
+              <button className="copy-btn" onClick={() => copyToClipboard(merchantSKUState, setCopyMerchantNotification)}>复制</button>
+            </div>
+            {merchantSKUError && <div className="error-text">{merchantSKUError}</div>}
+            {copyMerchantNotification && <div className="notification">复制成功</div>}
+          </div>
+        </div>
+      );
+    }
+    
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
 </body>
 </html>
