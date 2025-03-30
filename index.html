@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>SKU编码生成器</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
   <style>
+    /* 通用样式 */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -14,25 +15,49 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f7fa;
-      padding: 20px;
+      background: linear-gradient(135deg, #ece9e6, #ffffff);
+      padding: 30px;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
     }
     .container {
-      max-width: 700px;
-      background-color: white;
+      width: 100%;
+      max-width: 1200px; /* 调整整体页面宽度 */
+      background-color: #fff;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       padding: 30px;
       margin: 0 auto;
+      /* 确保容器高度足够包含所有内容 */
+      height: auto;
+      overflow: hidden; /* 防止内容溢出 */
     }
     .header {
       text-align: center;
-      margin-bottom: 25px;
-      color: #2c3e50;
+      margin-bottom: 30px;
+      position: relative;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .header h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .company-name {
+      position: absolute;
+      top: -10px;
+      right: 0;
+      background: linear-gradient(135deg, #00b4db, #0083b0);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 131, 176, 0.3);
+      letter-spacing: 1px;
     }
     .form-group {
       margin-bottom: 20px;
@@ -40,8 +65,8 @@
     .form-group label {
       display: block;
       margin-bottom: 8px;
-      color: #495057;
       font-weight: 500;
+      color: #555;
     }
     .form-group label span.required {
       color: red;
@@ -49,16 +74,17 @@
     }
     .form-input {
       width: 100%;
-      padding: 10px 15px;
-      border: 1px solid #ced4da;
+      padding: 10px 14px;
+      border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 16px;
       transition: border-color 0.2s;
+      height: 44px;
     }
     .form-input:focus {
       outline: none;
       border-color: #4096ff;
-      box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(64,150,255,0.2);
     }
     .form-input.error {
       border-color: #ff4d4f;
@@ -68,62 +94,201 @@
       font-size: 14px;
       margin-top: 5px;
     }
+    /* 修改单选按钮组样式，确保其显示在一行 */
     .radio-group {
       display: flex;
-      justify-content: center;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
       gap: 20px;
       margin-bottom: 20px;
+      width: 100%;
     }
     .radio-group label {
       cursor: pointer;
+      padding: 8px 14px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      background-color: #f7f7f7;
+      white-space: nowrap;
+      min-width: 150px;
+      text-align: center;
     }
+    .radio-group label:hover {
+      background-color: #eaeaea;
+    }
+    .radio-group input[type="radio"] {
+      margin-right: 6px;
+    }
+    /* 优化结果区域样式，使其更加突出 */
     .result-section {
-      padding: 10px 15px;
       background-color: #f0f5ff;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      word-break: break-all;
+      border-radius: 8px;
+      padding: 15px;
+      min-height: 60px;
+      margin-bottom: 15px;
+      word-break: break-word;
+      text-align: center;
+      border: 2px solid #d6e4ff;
+      box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .result-section:hover {
+      box-shadow: 0 6px 16px rgba(24, 144, 255, 0.2);
+      transform: translateY(-2px);
     }
     .result-code {
       font-size: 20px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1677ff;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: break-all;
+      padding: 5px;
     }
-    .copy-btn {
+    /* 固定显示40个字符的区域 */
+    .result-code.fixed-sku {
+      width: 40ch;      /* 固定宽度为40个字符 */
+      min-width: 40ch;
+      max-width: 40ch;
+      margin: 0 auto;
+    }
+    /* 复制按钮样式 */
+    .copy-btn-container {
+      position: relative;
+      text-align: center;
+      margin: 10px 0;
+      height: 45px;
+    }
+    .copy-btn.large {
+      width: 120px; /* 调整复制按钮宽度 */
+      padding: 12px 20px;
+      font-size: 16px;
       background-color: #4096ff;
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 4px;
-      padding: 6px 10px;
       cursor: pointer;
-      font-size: 14px;
       transition: background-color 0.3s;
+      margin: 0 auto;
     }
-    .copy-btn:hover {
+    .copy-btn.large:hover {
       background-color: #1677ff;
     }
+    /* 优化通知提示，使其不影响布局 */
+    .notification {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(82, 196, 26, 0.9);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .notification.show {
+      opacity: 1;
+    }
     /* 两栏布局 */
-    .row {
+    .two-column-layout {
       display: flex;
       gap: 20px;
-      flex-wrap: wrap;
+      margin-top: 20px;
+      /* 确保两栏布局在容器内部 */
+      width: 100%;
+      margin-bottom: 20px;
     }
-    .col {
+    .column {
       flex: 1;
-      min-width: 150px;
+      padding: 20px;
+      background-color: #F5F5F5;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    hr {
-      margin: 30px 0;
-      border: none;
-      border-top: 1px solid #ddd;
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #f0f5ff;
+      text-align: center;
     }
-    .notification {
-      color: #52c41a;
+    .quantity-container {
+      display: flex;
+      gap: 10px;
+    }
+    .quantity-container select {
+      flex: 1;
+    }
+    .unit-select {
+      width: 100%;
+      min-width: 120px;
+    }
+    .version-badge {
+      background-color: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
       font-size: 14px;
-      margin-top: 5px;
-      text-align: right;
+      color: #666;
+      margin-top: 8px;
+    }
+    /* 底部链接样式 */
+    .footer-link {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .docs-link {
+      text-align: center;
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #fafafa;
+      border-radius: 6px;
+      border-left: 3px solid #e0e0e0;
+    }
+    .docs-link a {
+      color: #888;
+      text-decoration: none;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .docs-link a:hover {
+      color: #4096ff;
+      text-decoration: underline;
+    }
+    .docs-link svg {
+      width: 16px;
+      height: 16px;
+      fill: #888;
+    }
+    .docs-link a:hover svg {
+      fill: #4096ff;
+    }
+    /* 响应式调整 */
+    @media (max-width: 800px) {
+      .two-column-layout {
+        flex-direction: column;
+      }
+      .radio-group {
+        flex-wrap: wrap;
+      }
+      .radio-group label {
+        min-width: auto;
+        width: 100%;
+      }
+      .result-code.fixed-sku {
+        width: 100%;
+        min-width: auto;
+        max-width: 100%;
+      }
     }
   </style>
 </head>
@@ -142,7 +307,7 @@
       return year + month + day;
     };
     
-    // 复制文本到剪贴板，并在对应区域显示提示（提示1秒后自动消失）
+    // 复制文本到剪贴板
     const copyToClipboard = (text, setNotification) => {
       if (!text) return;
       navigator.clipboard.writeText(text).then(() => {
@@ -155,6 +320,13 @@
       });
     };
     
+    // 单位类型及其对应的后缀
+    const unitTypes = [
+      { label: "个/只/支/条/件", value: "pc" },
+      { label: "套", value: "tao" },
+      { label: "双/对", value: "dui" }
+    ];
+    
     function App() {
       // 供货号相关状态
       const [skuType, setSkuType] = useState(1);  // 1: 前缀+日期+序号, 2: 前缀+固定字符
@@ -165,7 +337,8 @@
       const [fixedCodeError, setFixedCodeError] = useState('');
     
       // 商家SKU相关状态
-      const [quantity, setQuantity] = useState("1");  // 下拉选择，默认1
+      const [quantity, setQuantity] = useState("1");
+      const [unitType, setUnitType] = useState(unitTypes[0].value);
       const [color, setColor] = useState('');
       const [spec, setSpec] = useState('');
       const [colorError, setColorError] = useState('');
@@ -186,11 +359,11 @@
         }
       }, [prefix]);
     
-      // 校验固定字符：必须以XP开头，后跟7位数字
+      // 校验固定字符：必须以XP或HP开头，后跟7位数字
       const validateFixedCode = (value) => {
-        const regex = /^XP\d{7}$/;
+        const regex = /^(XP|HP)\d{7}$/;
         if (!regex.test(value)) {
-          setFixedCodeError('固定字符必须以XP开头，后跟7位数字');
+          setFixedCodeError('固定字符必须以XP或HP开头，后跟7位数字');
           return false;
         }
         setFixedCodeError('');
@@ -216,20 +389,20 @@
     
       // 校验尺寸或其他规格：只能输入数字和小写英文字母（如果输入内容不为空）
       const validateSpec = (value) => {
-        const regex = /^[0-9a-z]+$/;
+        const regex = /^[0-9a-z.\-]+$/;
         if (value && !regex.test(value)) {
-          setSpecError('尺寸或规格只能输入数字和小写字母');
+          setSpecError('能输入数字、小写字母、.或-');
           return false;
         }
         setSpecError('');
         return true;
       };
     
-      // 供货号动态生成，根据相关控件输入自动更新
+      // 供货号动态生成，根据控件输入自动更新
       const supplySKU = (() => {
         if (prefix.length !== 3) return '';
         const dateCode = getDateCode();
-        const version = launchNumber > 1 ? `-V${launchNumber}` : '';
+        const version = launchNumber > 1 ? `-v${launchNumber}` : '';
         if (skuType === 1) {
           return `${prefix}-${dateCode}${startNumber}${version}`;
         } else {
@@ -238,28 +411,18 @@
         }
       })();
     
-      // 商家SKU生成函数：只要颜色或规格任一有内容（且校验通过），就生成SKU
+      // 商家SKU生成函数
       const computeMerchantSKU = () => {
         if (!supplySKU) return '';
-        // 只要颜色或规格中有任一不为空即可
-        if (!color && !spec) return '';
-        if ((color && colorError) || (spec && specError)) return '';
-        const intQuantity = parseInt(quantity, 10);
-        const quantitySuffix = intQuantity > 1 ? `${intQuantity}pcs` : "";
+        
+        const quantitySuffix = `${quantity}${unitType}`;
         let sku = supplySKU;
-        if (quantitySuffix) {
-          sku += `-${quantitySuffix}`;
-        }
-        if (color) {
-          sku += `-${color}`;
-        }
-        if (spec) {
-          sku += `-${spec}`;
-        }
+        sku += `-${quantitySuffix}`;
+        if (color) sku += `-${color}`;
+        if (spec) sku += `-${spec}`;
         return sku;
       };
     
-      // 每当供货号、数量、颜色、或规格发生变化时，重新计算商家SKU及长度错误提示
       useEffect(() => {
         const computedSKU = computeMerchantSKU();
         setMerchantSKUState(computedSKU);
@@ -268,157 +431,123 @@
         } else {
           setMerchantSKUError("");
         }
-      }, [supplySKU, quantity, color, spec, colorError, specError]);
+      }, [supplySKU, quantity, unitType, color, spec, colorError, specError]);
     
       return (
         <div className="container">
           <div className="header">
             <h2>SKU编码生成系统</h2>
+            <div className="company-name">星辰大海探索家</div>
           </div>
     
-          {/* 供货号设置区域 */}
-          <div className="form-group">
-            <div className="radio-group">
-              <label>
-                <input 
-                  type="radio" 
-                  checked={skuType === 1}
-                  onChange={() => setSkuType(1)}
-                /> 前缀+日期+序号
-              </label>
-              <label>
-                <input 
-                  type="radio" 
-                  checked={skuType === 2}
-                  onChange={() => setSkuType(2)}
-                /> 前缀+固定字符
-              </label>
-            </div>
-          </div>
-    
-          <div className="row">
-            <div className="col form-group">
-              <label><span className="required">*</span>前缀（3位大写字母）</label>
-              <input 
-                className="form-input"
-                type="text" 
-                maxLength="3"
-                value={prefix}
-                onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-                placeholder="请输入3位大写字母"
-              />
-            </div>
-            {skuType === 2 ? (
-              <div className="col form-group">
-                <label><span className="required">*</span>固定字符</label>
-                <input 
-                  className={`form-input ${fixedCodeError ? 'error' : ''}`}
-                  type="text" 
-                  value={fixedCode}
-                  onChange={(e) => handleFixedCodeChange(e.target.value)}
-                  placeholder="以XP开头，后跟7位数字"
-                />
-                {fixedCodeError && <div className="error-text">{fixedCodeError}</div>}
+          <div className="two-column-layout">
+            {/* 左侧：供货号设置 */}
+            <div className="column">
+              <div className="section-title">供货号设置</div>
+              <div className="form-group">
+                <div className="radio-group">
+                  <label>
+                    <input type="radio" checked={skuType === 1} onChange={() => setSkuType(1)} /> 前缀+日期+序号
+                  </label>
+                  <label>
+                    <input type="radio" checked={skuType === 2} onChange={() => setSkuType(2)} /> 前缀+固定字符
+                  </label>
+                </div>
               </div>
-            ) : (
-              <div className="col form-group">
-                <label><span className="required">*</span>起始序号（今日上的第几个品）</label>
-                <select 
-                  className="form-input"
-                  value={startNumber}
-                  onChange={(e) => setStartNumber(e.target.value)}
-                >
-                  {Array.from({ length: 100 }, (_, i) => {
-                    const num = String(i + 1).padStart(3, '0');
+              <div className="form-group">
+                <label><span className="required">*</span>前缀（3位大写字母）</label>
+                <input className="form-input" type="text" maxLength="3" value={prefix} onChange={(e) => setPrefix(e.target.value.toUpperCase())} placeholder="请输入3位大写字母" />
+              </div>
+              {skuType === 2 ? (
+                <div className="form-group">
+                  <label><span className="required">*</span>固定字符</label>
+                  <input className={`form-input ${fixedCodeError ? 'error' : ''}`} type="text" value={fixedCode} onChange={(e) => handleFixedCodeChange(e.target.value)} placeholder="以XP或HP开头，后跟7位数字" />
+                  {fixedCodeError && <div className="error-text">{fixedCodeError}</div>}
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label><span className="required">*</span>起始序号（今日上的第几个品）</label>
+                  <select className="form-input" value={startNumber} onChange={(e) => setStartNumber(e.target.value)}>
+                    {Array.from({ length: 100 }, (_, i) => {
+                      const num = String(i + 1).padStart(3, '0');
+                      return <option key={num} value={num}>{num}</option>;
+                    })}
+                  </select>
+                </div>
+              )}
+              <div className="form-group">
+                <label><span className="required">*</span>上架次数（此商品第几次上架）</label>
+                <select className="form-input" value={launchNumber} onChange={(e) => setLaunchNumber(Number(e.target.value))}>
+                  {Array.from({ length: 50 }, (_, i) => {
+                    const num = i + 1;
                     return <option key={num} value={num}>{num}</option>;
                   })}
                 </select>
               </div>
-            )}
-          </div>
-    
-          <div className="row">
-            <div className="col form-group">
-              <label><span className="required">*</span>上架次数（此商品第几次上架）</label>
-              <select 
-                className="form-input"
-                value={launchNumber}
-                onChange={(e) => setLaunchNumber(Number(e.target.value))}
-              >
-                {Array.from({ length: 50 }, (_, i) => {
-                  const num = i + 1;
-                  return <option key={num} value={num}>{num}</option>;
-                })}
-              </select>
+              {/* 生成的供货号区域 */}
+              <div className="form-group">
+                <label>生成的供货号</label>
+                <div className="result-section">
+                  <div className="result-code">{supplySKU}</div>
+                </div>
+                <div className="copy-btn-container">
+                  <button className="copy-btn large" onClick={() => copyToClipboard(supplySKU, setCopySupplyNotification)}>复制</button>
+                  <div className={`notification ${copySupplyNotification ? 'show' : ''}`}>复制成功</div>
+                </div>
+              </div>
             </div>
-          </div>
     
-          {/* 供货号结果 */}
-          <div className="form-group">
-            <label>生成的供货号</label>
-            <div className="result-section">
-              <div className="result-code">{supplySKU}</div>
-              <button className="copy-btn" onClick={() => copyToClipboard(supplySKU, setCopySupplyNotification)}>复制</button>
-            </div>
-            {copySupplyNotification && <div className="notification">复制成功</div>}
-          </div>
-    
-          <hr />
-    
-          {/* 商家SKU设置区域 */}
-          <div className="row">
-            <div className="col form-group">
-              <label><span className="required">*</span>数量</label>
-              <select 
-                className="form-input"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-              >
-                {Array.from({ length: 100 }, (_, i) => {
-                  const num = i + 1;
-                  return <option key={num} value={num}>{num}</option>;
-                })}
-              </select>
-            </div>
-            <div className="col form-group">
-              <label>颜色（小写字母拼音）</label>
-              <input 
-                className={`form-input ${colorError ? 'error' : ''}`}
-                type="text" 
-                value={color}
-                onChange={(e) => {
-                  setColor(e.target.value);
-                  validateColor(e.target.value);
-                }}
-                placeholder="白色写成baise"
-              />
-              {colorError && <div className="error-text">{colorError}</div>}
-            </div>
-            <div className="col form-group">
-              <label>其他说明</label>
-              <input 
-                className={`form-input ${specError ? 'error' : ''}`}
-                type="text" 
-                value={spec}
-                onChange={(e) => {
-                  setSpec(e.target.value);
-                  validateSpec(e.target.value);
-                }}
-                placeholder="数字或小写字母"
-              />
-              {specError && <div className="error-text">{specError}</div>}
+            {/* 右侧：商家SKU设置 */}
+            <div className="column">
+              <div className="section-title">商家SKU设置</div>
+              <div className="form-group">
+                <label><span className="required">*</span>数量与单位</label>
+                <div className="quantity-container">
+                  <select className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)}>
+                    {Array.from({ length: 100 }, (_, i) => {
+                      const num = i + 1;
+                      return <option key={num} value={num}>{num}</option>;
+                    })}
+                  </select>
+                  <select className="form-input unit-select" value={unitType} onChange={(e) => setUnitType(e.target.value)}>
+                    {unitTypes.map((unit, index) => (
+                      <option key={index} value={unit.value}>{unit.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>颜色（小写字母拼音）</label>
+                <input className={`form-input ${colorError ? 'error' : ''}`} type="text" value={color} onChange={(e) => { setColor(e.target.value); validateColor(e.target.value); }} placeholder="白色写成bai" />
+                {colorError && <div className="error-text">{colorError}</div>}
+              </div>
+              <div className="form-group">
+                <label>其他说明</label>
+                <input className={`form-input ${specError ? 'error' : ''}`} type="text" value={spec} onChange={(e) => { setSpec(e.target.value); validateSpec(e.target.value); }} placeholder="能输入数字、小写字母、.或-" />
+                {specError && <div className="error-text">{specError}</div>}
+              </div>
+              {/* 生成的商家SKU区域 */}
+              <div className="form-group">
+                <label>生成的商家SKU</label>
+                <div className="result-section">
+                  <div className="result-code fixed-sku">{merchantSKUState}</div>
+                </div>
+                <div className="copy-btn-container">
+                  <button className="copy-btn large" onClick={() => copyToClipboard(merchantSKUState, setCopyMerchantNotification)}>复制</button>
+                  <div className={`notification ${copyMerchantNotification ? 'show' : ''}`}>复制成功</div>
+                </div>
+                {merchantSKUError && <div className="error-text">{merchantSKUError}</div>}
+              </div>
             </div>
           </div>
     
-          {/* 商家SKU结果 */}
-          <div className="form-group">
-            <label>生成的商家SKU</label>
-            <div className="result-section">
-              <div className="result-code">{merchantSKUState}</div>
-              <button className="copy-btn" onClick={() => copyToClipboard(merchantSKUState, setCopyMerchantNotification)}>复制</button>
-            </div>
-            {merchantSKUError && <div className="error-text">{merchantSKUError}</div>}
-            {copyMerchantNotification && <div className="notification">复制成功</div>}
+          <div className="footer-link docs-link">
+            <a href="https://u0u31gqf3j8.feishu.cn/wiki/EGQewIlCPiClDmkBR1qc1XShn7b?fromScene=spaceOverview" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+              商家SKU命名规范说明
+            </a>
           </div>
         </div>
       );
