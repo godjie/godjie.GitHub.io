@@ -534,7 +534,7 @@
               </div>
               <div className="form-group">
                 <label>颜色（小写字母拼音）</label>
-                <input className={`form-input ${colorError ? 'error' : ''}`} type="text" value={color} onChange={(e) => { setColor(e.target.value); validateColor(e.target.value); }} placeholder="如：bai" />
+                <input className={`form-input ${colorError ? 'error' : ''}`} type="text" value={color} onChange={(e) => { setColor(e.target.value); validateColor(e.target.value); }} placeholder="例如：白写bai" />        
                 {colorError && <div className="error-text">{colorError}</div>}
               </div>
               <div className="form-group">
